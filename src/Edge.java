@@ -11,8 +11,8 @@ public class Edge implements EdgeInterface, Comparable<Edge> {
         }
         this.p1 = p1;
         this.p2 = p2;
-        this.length = Math.sqrt(Math.pow((double) p1.x - p2.x, 2) + Math.pow((double) p1.y - p2.y, 2)
-                + Math.pow((double) p1.z - p2.z, 2));
+        this.length = Math.sqrt(Math.pow((double) (p1.x - p2.x), 2) + Math.pow((double) (p1.y - p2.y), 2)
+                + Math.pow((double) (p1.z - p2.z), 2));
         // this.length = ((this.p1.x - this.p2.x) * (this.p1.x - this.p2.x)
         // + (this.p1.y - this.p2.y) * (this.p1.y - this.p2.y)
         // + (this.p1.z - this.p2.z) * (this.p1.z - this.p2.z));

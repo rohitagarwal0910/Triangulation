@@ -1,10 +1,30 @@
 public class Shape implements ShapeInterface {
     int triangle_sno = 0;
-    int no_of_components = 0;
+    // int no_of_components = 0;
     RBTree<Triangle, Triangle> triangles = new RBTree<Triangle, Triangle>();
     RBTree<Point, Point> points = new RBTree<Point, Point>();
     RBTree<Edge, Edge> edges = new RBTree<Edge, Edge>();
     LinkedList<Component> components = new LinkedList<Component>();
+
+    boolean checkCollinear(Point p1, Point p2, Point p3, double len1, double len2) {
+        if (len1 == 0 || len2 == 0)
+            return true;
+        float x1 = p1.x - p2.x;
+        float x2 = p3.x - p2.x;
+        float y1 = p1.y - p2.y;
+        float y2 = p3.y - p2.y;
+        float z1 = p1.z - p2.z;
+        float z2 = p3.z - p2.z;
+        double cos = (x1 * x2 + y1 * y2 + z1 * z2) / (len1 * len2);
+        if (Math.abs(cos) >= 1) {
+            return true;
+        }
+        if (Math.abs(cos) < 0.5) {
+            return false;
+        }
+        double tan = Math.tan(Math.acos(cos));
+        return Math.abs(tan) < 0.001;
+    }
 
     @Override
     public boolean ADD_TRIANGLE(float[] triangle_coord) {
@@ -119,8 +139,8 @@ public class Shape implements ShapeInterface {
         }
         while (ttn != null) {
             Triangle tt = ttn.value;
-            t.triangles.add(tt);
-            tt.triangles.add(t);
+            t.triangles.endAdd(tt);
+            tt.triangles.endAdd(t);
             ttn = ttn.next;
         }
         ttn = e2.triangles.head;
@@ -129,8 +149,8 @@ public class Shape implements ShapeInterface {
         }
         while (ttn != null) {
             Triangle tt = ttn.value;
-            t.triangles.add(tt);
-            tt.triangles.add(t);
+            t.triangles.endAdd(tt);
+            tt.triangles.endAdd(t);
             ttn = ttn.next;
         }
         ttn = e3.triangles.head;
@@ -139,8 +159,8 @@ public class Shape implements ShapeInterface {
         }
         while (ttn != null) {
             Triangle tt = ttn.value;
-            t.triangles.add(tt);
-            tt.triangles.add(t);
+            t.triangles.endAdd(tt);
+            tt.triangles.endAdd(t);
             ttn = ttn.next;
         }
 
@@ -148,9 +168,9 @@ public class Shape implements ShapeInterface {
         triangles.insert(t, t);
 
         // adding triangle to points
-        p1.triangles.add(t);
-        p2.triangles.add(t);
-        p3.triangles.add(t);
+        p1.triangles.endAdd(t);
+        p2.triangles.endAdd(t);
+        p3.triangles.endAdd(t);
 
         // adding edges to points
         // if(be1) p1.edges.add(e1);
@@ -169,42 +189,30 @@ public class Shape implements ShapeInterface {
         // p3.points.add(p2);
 
         if (be1) {
-            p1.edges.add(e1);
-            p2.edges.add(e1);
-            p1.points.add(p2);
-            p2.points.add(p1);
+            p1.edges.endAdd(e1);
+            p2.edges.endAdd(e1);
+            p1.points.endAdd(p2);
+            p2.points.endAdd(p1);
         }
         if (be2) {
-            p2.edges.add(e2);
-            p3.edges.add(e2);
-            p2.points.add(p3);
-            p3.points.add(p2);
+            p2.edges.endAdd(e2);
+            p3.edges.endAdd(e2);
+            p2.points.endAdd(p3);
+            p3.points.endAdd(p2);
         }
         if (be3) {
-            p3.edges.add(e3);
-            p1.edges.add(e3);
-            p3.points.add(p1);
-            p1.points.add(p3);
+            p3.edges.endAdd(e3);
+            p1.edges.endAdd(e3);
+            p3.points.endAdd(p1);
+            p1.points.endAdd(p3);
         }
 
-        // adding trinagle to edges
-        e1.triangles.add(t);
-        e2.triangles.add(t);
-        e3.triangles.add(t);
+        // Adding trinagle to edges
+        e1.triangles.endAdd(t);
+        e2.triangles.endAdd(t);
+        e3.triangles.endAdd(t);
 
         return true;
-    }
-
-    boolean checkCollinear(Point p1, Point p2, Point p3, double len1, double len2) {
-        float x1 = p1.x - p2.x;
-        float x2 = p3.x - p2.x;
-        float y1 = p1.y - p2.y;
-        float y2 = p3.y - p2.y;
-        float z1 = p1.z - p2.z;
-        float z2 = p3.z - p2.z;
-        double cos = (x1 * x2 + y1 * y2 + z1 * z2) / (len1 * len2);
-        double tan = Math.tan(Math.acos(cos));
-        return Math.abs(tan) < 0.001;
     }
 
     void merge(Triangle t1, Triangle t2) {
@@ -224,10 +232,6 @@ public class Shape implements ShapeInterface {
             // large = large;
             // small = small;
             // small.component.idObject = large.component.idObject;
-            if (large.component.triangles.tail.next == small.component.triangles.head) {
-                System.out.println(large.component.triangles.size);
-                System.exit(0);
-            }
             large.component.triangles.tail.next = small.component.triangles.head;
             large.component.triangles.tail = small.component.triangles.tail;
             large.component.triangles.size += small.component.triangles.size;
@@ -296,6 +300,7 @@ public class Shape implements ShapeInterface {
             tr[i++] = te.value;
             te = te.next;
         }
+        mergeSortEdge(tr, 0, tr.length-1);
         return (tr.length == 0) ? null : tr;
     }
 
@@ -337,7 +342,7 @@ public class Shape implements ShapeInterface {
         // while (i < tr.length) {
         // if (tn1 != null) t1
         // }
-
+        mergeSortTriangle(tr, 0, tr.length-1);
         return (tr.length == 0) ? null : tr;
     }
 
@@ -440,6 +445,7 @@ public class Shape implements ShapeInterface {
                 stack.add(en.left);
             }
         }
+        mergeSortTriangle(tr, 0, tr.length-1);
         return (tr.length == 0) ? null : tr;
     }
 
@@ -457,6 +463,7 @@ public class Shape implements ShapeInterface {
             tr[i++] = tn.value;
             tn = tn.next;
         }
+        // mergeSortTriangle(tr, 0, tr.length-1);
         return (tr.length == 0) ? null : tr;
     }
 
@@ -547,6 +554,7 @@ public class Shape implements ShapeInterface {
             tr[i++] = tn.value;
             tn = tn.next;
         }
+        // mergeSortTriangle(tr, 0, tr.length-1);
         return (tr.length == 0) ? null : tr;
     }
 
@@ -599,7 +607,7 @@ public class Shape implements ShapeInterface {
 
     @Override
     public PointInterface[] CENTROID() {
-        PointInterface[] tr = new PointInterface[components.size];
+        Point[] tr = new Point[components.size];
         ListNode<Component> cn = components.head;
         int i = 0;
         while (cn != null) {
@@ -613,6 +621,7 @@ public class Shape implements ShapeInterface {
         // tr[i++] = ln.value;
         // ln = ln.next;
         // }
+        mergeSortPoint(tr, 0, tr.length-1);
         return tr;
     }
 
@@ -627,7 +636,7 @@ public class Shape implements ShapeInterface {
         return getCentroid(c);
     }
 
-    PointInterface getCentroid(Component c) {
+    Point getCentroid(Component c) {
         // RBTree<Point, Point> tpoints = new RBTree<Point, Point>();
         float x = 0, y = 0, z = 0;
         // ListNode<Triangle> tn = c.triangles.head;
@@ -732,9 +741,9 @@ public class Shape implements ShapeInterface {
                 while (cn2point != null) {
                     ListNode<Point> cnpoint = pointsList[i].head;
                     while (cnpoint != null) {
-                        double tdist = Math.sqrt(Math.pow((double) cn2point.value.x - cnpoint.value.x, 2)
-                                + Math.pow((double) cn2point.value.y - cnpoint.value.y, 2)
-                                + Math.pow((double) cn2point.value.z - cnpoint.value.z, 2));
+                        double tdist = Math.sqrt(Math.pow((double) (cn2point.value.x - cnpoint.value.x), 2)
+                                + Math.pow((double) (cn2point.value.y - cnpoint.value.y), 2)
+                                + Math.pow((double) (cn2point.value.z - cnpoint.value.z), 2));
                         if (tdist <= dist || dist == -1) {
                             dist = tdist;
                             p1 = cn2point.value;
@@ -759,4 +768,114 @@ public class Shape implements ShapeInterface {
         // return null;
     }
 
+    public void mergeListEdge(Edge[] list, int s, int e) {
+        int a = (s + e) / 2;
+        Edge[] l1 = new Edge[a - s + 1];
+        Edge[] l2 = new Edge[e - a];
+
+        for (int i = 0; i < l1.length; i++) {
+            l1[i] = list[s + i];
+        }
+        for (int j = 0; j < l2.length; j++) {
+            l2[j] = list[a + 1 + j];
+        }
+
+        int l = 0, r = 0;
+        int index = s;
+        while(l < l1.length && r < l2.length){
+            if (l1[l].length - l2[r].length <= 0){
+                list[index++] = l1[l++];
+            } else {
+                list[index++] = l2[r++];
+            }
+        }
+        while (l < l1.length){
+            list[index++] = l1[l++];
+        }
+        while (r < l2.length){
+            list[index++] = l2[r++];
+        }
+    }
+
+    public void mergeSortEdge(Edge[] list, int s, int e) {
+        if (s < e) {
+            mergeSortEdge(list, s, (s + e) / 2);
+            mergeSortEdge(list, (s + e) / 2 + 1, e);
+            mergeListEdge(list, s, e);
+        }
+    }
+
+    public void mergeListTriangle(Triangle[] list, int s, int e) {
+        int a = (s + e) / 2;
+        Triangle[] l1 = new Triangle[a - s + 1];
+        Triangle[] l2 = new Triangle[e - a];
+
+        for (int i = 0; i < l1.length; i++) {
+            l1[i] = list[s + i];
+        }
+        for (int j = 0; j < l2.length; j++) {
+            l2[j] = list[a + 1 + j];
+        }
+
+        int l = 0, r = 0;
+        int index = s;
+        while(l < l1.length && r < l2.length){
+            if (l1[l].sno - l2[r].sno <= 0){
+                list[index++] = l1[l++];
+            } else {
+                list[index++] = l2[r++];
+            }
+        }
+        while (l < l1.length){
+            list[index++] = l1[l++];
+        }
+        while (r < l2.length){
+            list[index++] = l2[r++];
+        }
+    }
+
+    public void mergeSortTriangle(Triangle[] list, int s, int e) {
+        if (s < e) {
+            mergeSortTriangle(list, s, (s + e) / 2);
+            mergeSortTriangle(list, ((s + e) / 2) + 1, e);
+            mergeListTriangle(list, s, e);
+        }
+    }
+
+    public void mergeListPoint(Point[] list, int s, int e) {
+        int a = (s + e) / 2;
+        Point[] l1 = new Point[a - s + 1];
+        Point[] l2 = new Point[e - a];
+
+        for (int i = 0; i < l1.length; i++) {
+            l1[i] = list[s + i];
+        }
+        for (int j = 0; j < l2.length; j++) {
+            l2[j] = list[a + 1 + j];
+        }
+
+        int l = 0, r = 0;
+        int index = s;
+        while(l < l1.length && r < l2.length){
+            if (l1[l].compareTo(l2[r]) <= 0){
+                list[index++] = l1[l++];
+            } else {
+                list[index++] = l2[r++];
+            }
+        }
+        while (l < l1.length){
+            list[index++] = l1[l++];
+        }
+        while (r < l2.length){
+            list[index++] = l2[r++];
+        }
+    }
+
+    public void mergeSortPoint(Point[] list, int s, int e) {
+        if (s < e) {
+            mergeSortPoint(list, s, (s + e) / 2);
+            mergeSortPoint(list, (s + e) / 2 + 1, e);
+            mergeListPoint(list, s, e);
+        }
+    }
 }

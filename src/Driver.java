@@ -51,7 +51,8 @@ class Driver {
 				case "ADD_TRIANGLE":
 					System.out.println("Add TriangleInterface ");
 
-					shape_intr.ADD_TRIANGLE(input);
+					boolean b = shape_intr.ADD_TRIANGLE(input);
+					System.out.println(b);
 					break;
 
 				case "TYPE_MESH":
